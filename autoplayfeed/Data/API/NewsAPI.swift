@@ -12,7 +12,7 @@ enum NewsAPI: Endpoint {
     case feed(page: Int)
 
     var baseURL: String {
-        "https://mpe2443b81ac89378f84.free.beeceptor.com"
+        "https://autoplay.free.beeceptor.com"
     }
 
     var path: String {

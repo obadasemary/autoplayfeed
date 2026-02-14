@@ -46,6 +46,23 @@ struct NewsFeedView: View {
                     viewModel.loadNews()
                 }
             }
+            .overlay(alignment: .bottom) {
+                if let toast = viewModel.toastMessage {
+                    Text(toast)
+                        .font(.subheadline)
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(.red.opacity(0.9), in: RoundedRectangle(cornerRadius: 10))
+                        .padding(.bottom, 16)
+                        .padding(.horizontal, 16)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .onTapGesture {
+                            viewModel.dismissToast()
+                        }
+                }
+            }
+            .animation(.easeInOut, value: viewModel.toastMessage)
         }
     }
 

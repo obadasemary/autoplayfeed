@@ -47,6 +47,9 @@ final class NewsFeedViewModel {
     private var isLoadingPage = false
     private var hasMorePages = true
 
+    /// Error message to display as a toast notification for pagination errors
+    private(set) var paginationErrorMessage: String?
+
     // MARK: - Computed Properties
 
     var isLoading: Bool {
@@ -189,14 +192,16 @@ final class NewsFeedViewModel {
                 print("📊 [ViewModel] State: loaded with \(existingItems.count + newItems.count) total items")
             } catch let error as NewsError {
                 print("❌ [ViewModel] LoadMore error: \(error)")
-                state = .error(error)
+                paginationErrorMessage = error.userMessage
+                state = .loaded(existingItems) // Preserve existing items
                 currentPage -= 1 // Revert page on error
-                print("⏪ [ViewModel] Reverted to page \(currentPage)")
+                print("⏪ [ViewModel] Reverted to page \(currentPage), keeping \(existingItems.count) items")
             } catch {
                 print("❌ [ViewModel] LoadMore unknown error: \(error.localizedDescription)")
-                state = .error(.unknown(error.localizedDescription))
+                paginationErrorMessage = error.localizedDescription
+                state = .loaded(existingItems) // Preserve existing items
                 currentPage -= 1 // Revert page on error
-                print("⏪ [ViewModel] Reverted to page \(currentPage)")
+                print("⏪ [ViewModel] Reverted to page \(currentPage), keeping \(existingItems.count) items")
             }
         }
     }
@@ -205,5 +210,10 @@ final class NewsFeedViewModel {
     func selectNewsItem(_ item: NewsItemAdapter) {
         print("👆 [ViewModel] Selected news item: \(item.title)")
         router.navigateToNewsDetail(item: item)
+    }
+
+    /// Clears the pagination error message (used for dismissing toast notifications)
+    func clearPaginationError() {
+        paginationErrorMessage = nil
     }
 }

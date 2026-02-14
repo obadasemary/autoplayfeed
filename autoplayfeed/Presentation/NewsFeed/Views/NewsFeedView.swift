@@ -46,10 +46,49 @@ struct NewsFeedView: View {
                     viewModel.loadNews()
                 }
             }
+            .overlay(alignment: .bottom) {
+                if let errorMessage = viewModel.paginationErrorMessage {
+                    toastView(message: errorMessage)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .animation(.spring(duration: 0.3), value: viewModel.paginationErrorMessage)
+                }
+            }
         }
     }
 
     // MARK: - Private Views
+
+    @ViewBuilder
+    private func toastView(message: String) -> some View {
+        VStack {
+            Spacer()
+            HStack {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.white)
+                Text(message)
+                    .foregroundStyle(.white)
+                    .font(.subheadline)
+                Spacer()
+                Button {
+                    viewModel.clearPaginationError()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+            }
+            .padding()
+            .background(Color.red.opacity(0.9))
+            .cornerRadius(12)
+            .shadow(radius: 10)
+            .padding(.horizontal)
+            .padding(.bottom, 20)
+        }
+        .task {
+            // Auto-dismiss after 5 seconds
+            try? await Task.sleep(for: .seconds(5))
+            viewModel.clearPaginationError()
+        }
+    }
 
     @ViewBuilder
     private func newsList(_ items: [NewsItemAdapter]) -> some View {

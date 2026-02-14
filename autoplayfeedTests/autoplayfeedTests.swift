@@ -210,51 +210,50 @@ struct NewsFeedViewModelTests {
         #expect(useCase.fetchNewsCallCount == 0)
     }
     
-    @Test func loadMore_Error_RevertsPage() async {
+    @Test func loadMore_Error_PreservesExistingItems() async {
         let useCase = MockNewsUseCase()
         let router = MockNewsFeedRouter()
         let viewModel = NewsFeedViewModel(useCase: useCase, router: router)
-        
+
         // Initial successful load
         let initialItems = [NewsItemAdapter.mock(id: "1")]
         useCase.fetchNewsResult = .success(initialItems)
         useCase.hasMorePagesResult = .success(true)
-        
+
         viewModel.loadNews()
         try? await Task.sleep(for: .milliseconds(100))
-        
+
         #expect(useCase.lastRequestedPage == 1)
-        
+
         // Attempt to load more with error
         useCase.fetchNewsResult = .failure(NewsError.server(statusCode: 500))
-        
+
         viewModel.loadMore()
         try? await Task.sleep(for: .milliseconds(100))
-        
-        // State should be error
-        if case .error = viewModel.state {
-            // Expected
+
+        // State should remain loaded with existing items preserved
+        if case .loaded(let items) = viewModel.state {
+            #expect(items.count == 1)
+            #expect(items[0].id == "1")
         } else {
-            Issue.record("Expected error state after failed loadMore")
+            Issue.record("Expected loaded state with preserved items after failed loadMore")
         }
-        
+
+        // Toast message should be shown
+        #expect(viewModel.toastMessage != nil)
+        #expect(viewModel.toastMessage?.contains("Server error") == true)
+
         // Verify that the error occurred on page 2 attempt
         #expect(useCase.lastRequestedPage == 2)
         #expect(useCase.fetchNewsCallCount == 2)
-        
-        // Now manually restore to loaded state to simulate recovery
-        // In real app, user might pull-to-refresh or the error state might be dismissed
-        useCase.fetchNewsResult = .success(initialItems)
-        useCase.hasMorePagesResult = .success(true)
-        await viewModel.refresh()
-        
-        // Now try to load more again - should request page 2 again (because error reverted the counter)
+
+        // Retry loading more - should request page 2 again (because error reverted the counter)
         useCase.fetchNewsResult = .success([NewsItemAdapter.mock(id: "2")])
         useCase.hasMorePagesResult = .success(false)
-        
+
         viewModel.loadMore()
         try? await Task.sleep(for: .milliseconds(100))
-        
+
         // Should request page 2 again, not page 3
         #expect(useCase.lastRequestedPage == 2)
         #expect(viewModel.newsItems.count == 2)

@@ -40,6 +40,7 @@ final class NewsFeedViewModel {
     // MARK: - Properties
 
     private(set) var state: State = .idle
+    private(set) var toastMessage: String?
     private let useCase: NewsUseCaseProtocol
     private let router: NewsFeedRouterProtocol
 
@@ -189,15 +190,32 @@ final class NewsFeedViewModel {
                 print("📊 [ViewModel] State: loaded with \(existingItems.count + newItems.count) total items")
             } catch let error as NewsError {
                 print("❌ [ViewModel] LoadMore error: \(error)")
-                state = .error(error)
+                state = .loaded(existingItems)
                 currentPage -= 1 // Revert page on error
-                print("⏪ [ViewModel] Reverted to page \(currentPage)")
+                showToast(error.userMessage)
+                print("⏪ [ViewModel] Reverted to page \(currentPage), preserved \(existingItems.count) items")
             } catch {
                 print("❌ [ViewModel] LoadMore unknown error: \(error.localizedDescription)")
-                state = .error(.unknown(error.localizedDescription))
+                state = .loaded(existingItems)
                 currentPage -= 1 // Revert page on error
-                print("⏪ [ViewModel] Reverted to page \(currentPage)")
+                showToast(error.localizedDescription)
+                print("⏪ [ViewModel] Reverted to page \(currentPage), preserved \(existingItems.count) items")
             }
+        }
+    }
+
+    /// Dismisses the current toast message
+    func dismissToast() {
+        toastMessage = nil
+    }
+
+    // MARK: - Private Helpers
+
+    private func showToast(_ message: String) {
+        toastMessage = message
+        Task {
+            try? await Task.sleep(for: .seconds(3))
+            toastMessage = nil
         }
     }
 

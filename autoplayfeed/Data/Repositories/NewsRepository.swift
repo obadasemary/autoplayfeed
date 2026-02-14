@@ -44,13 +44,17 @@ actor NewsRepository: NewsRepositoryProtocol {
     // MARK: - Private Mapping Methods
 
     private func mapToDomain(_ dto: NewsPageResponseDTO) -> NewsPageResponse {
-        let items = dto.items.map { itemDTO -> NewsItem in
-            NewsItem(
+        let items = dto.items.compactMap { itemDTO -> NewsItem? in
+            guard let publishedDate = parseDate(itemDTO.publishedDate) else {
+                return nil
+            }
+
+            return NewsItem(
                 id: itemDTO.id,
                 title: itemDTO.title,
                 description: itemDTO.description,
                 imageURL: itemDTO.imageURL,
-                publishedDate: parseDate(itemDTO.publishedDate),
+                publishedDate: publishedDate,
                 source: itemDTO.source,
                 category: itemDTO.category,
                 author: itemDTO.author,
@@ -66,9 +70,9 @@ actor NewsRepository: NewsRepositoryProtocol {
         )
     }
 
-    private func parseDate(_ dateString: String) -> Date {
+    private func parseDate(_ dateString: String) -> Date? {
         let formatter = ISO8601DateFormatter()
-        return formatter.date(from: dateString) ?? Date()
+        return formatter.date(from: dateString)
     }
 
     private func mapNetworkError(_ error: NetworkError) -> NewsError {

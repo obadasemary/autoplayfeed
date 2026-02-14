@@ -10,6 +10,7 @@ import Foundation
 @testable import autoplayfeed
 
 @Suite("NewsRepository Tests")
+@MainActor
 struct NewsRepositoryTests {
     
     // MARK: - Successful Fetch Tests

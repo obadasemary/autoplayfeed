@@ -30,6 +30,6 @@ final class NewsFeedBuilder {
         let viewModel = NewsFeedViewModel(useCase: useCase, router: router)
 
         // Return configured view
-        return NewsFeedView(viewModel: viewModel)
+        return NewsFeedView(viewModel: viewModel, router: router)
     }
 }

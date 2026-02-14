@@ -10,13 +10,15 @@ import SwiftUI
 /// Main news feed view displaying paginated news items
 struct NewsFeedView: View {
     @State private var viewModel: NewsFeedViewModel
+    @State private var router: NewsFeedRouter
 
-    init(viewModel: NewsFeedViewModel) {
+    init(viewModel: NewsFeedViewModel, router: NewsFeedRouter) {
         self.viewModel = viewModel
+        self.router = router
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $router.navigationPath) {
             Group {
                 switch viewModel.state {
                 case .idle, .loading:
@@ -33,6 +35,12 @@ struct NewsFeedView: View {
                 }
             }
             .navigationTitle("News Feed")
+            .navigationDestination(for: NewsFeedDestination.self) { destination in
+                switch destination {
+                case .newsDetail(let item):
+                    NewsDetailView(item: item)
+                }
+            }
             .onAppear {
                 if case .idle = viewModel.state {
                     viewModel.loadNews()
@@ -102,7 +110,7 @@ struct NewsFeedView: View {
         viewModel.loadNews()
     }
 
-    return NewsFeedView(viewModel: viewModel)
+    return NewsFeedView(viewModel: viewModel, router: mockRouter)
 }
 
 #Preview("Loaded") {
@@ -163,7 +171,7 @@ struct NewsFeedView: View {
         viewModel.loadNews()
     }
 
-    return NewsFeedView(viewModel: viewModel)
+    return NewsFeedView(viewModel: viewModel, router: mockRouter)
 }
 
 #Preview("Error") {
@@ -190,5 +198,5 @@ struct NewsFeedView: View {
         viewModel.loadNews()
     }
 
-    return NewsFeedView(viewModel: viewModel)
+    return NewsFeedView(viewModel: viewModel, router: mockRouter)
 }

@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct autoplayfeedApp: App {
+    private let composition = AppComposition.shared
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            NewsFeedBuilder(container: composition.container)
+                .buildNewsFeedView()
         }
     }
 }

@@ -8,7 +8,7 @@
 import Foundation
 
 /// Presentation model for NewsItem with formatted data for views
-struct NewsItemAdapter: Identifiable, Sendable, Equatable {
+struct NewsItemAdapter: Identifiable, Sendable, Equatable, Hashable {
     let id: String
     let title: String
     let description: String
